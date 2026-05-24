@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Multicart",
+  title: "Vendora",
   description: "Multi-vendor e-commerce website",
 };
 
