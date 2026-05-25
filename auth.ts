@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials"
 import connectDb from "./lib/connectDB"
 import User from '@/app/model/user.model';
 import bcrypt from 'bcryptjs';
+import Google from "next-auth/providers/google";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -11,6 +12,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 email: { label: "email", type: "email" },
                 password: { label: "Password", type: "password" },
             },
+
             async authorize(credentials, request) {
                 await connectDb()
                 const email = credentials.email as string;
@@ -22,9 +24,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 }
 
                 const isMatch = await bcrypt.compare(password, user.password)
+
+                console.log("[auth][debug] authorize():", { email, userFound: !!user, isMatch })
+
                 if (!isMatch) {
                     throw new Error("Incorrect Password")
                 }
+
 
                 return {
                     id : user._id.toString(),
@@ -36,9 +42,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
 
         }),
+        Google({
+            clientId:process.env.AUTH_GOOGLE_ID,
+            clientSecret:process.env.AUTH_GOOGLE_SECRET
+        })
     ],
 
     callbacks: {
+
+        async signIn({user,account}){
+            if(account?.provider == "google"){
+                await connectDb()
+                let DbUser = await User.findOne({email:user.email})
+                if(!DbUser){
+                    DbUser = await User.create({
+                        name:user.name,
+                        email:user.email,
+                        image:user.image
+                    })
+                }
+                user.id = DbUser.id.toString()
+                user.role= DbUser.role.toString()
+            }
+            return true
+        },
 
         jwt({token, user}){
            

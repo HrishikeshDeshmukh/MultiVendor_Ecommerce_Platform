@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PiEyeBold, PiEyeClosedBold } from "react-icons/pi";
 import { FcGoogle } from "react-icons/fc";
 import { ClipLoader } from "react-spinners";
+import { signIn, useSession } from 'next-auth/react';
 
 
 const SignIn = () => {
@@ -14,6 +15,33 @@ const SignIn = () => {
     const [showPassword, setShowPassword] = useState(false)
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const session  = useSession() // not needed on login page currently
+    console.log(session)
+
+
+    console.log()
+
+    const handleSignIn = async (e: React.FormEvent) => {
+        setLoading(true)
+        e.preventDefault()
+        try {
+            const result = await signIn("credentials", {
+                email,
+                password,
+                redirect:false
+
+            })
+            alert("SignIn Successfully")
+            router.push("/")
+            setLoading(false)
+
+        } catch (error) {
+
+            console.log(error)
+            setLoading(false)
+            alert(error)
+        }
+    }
 
     return (
         <div className='min-h-screen flex items-center justify-center 
@@ -31,7 +59,7 @@ const SignIn = () => {
                         Welcome Back to <span className="text-yellow-300">Vendora</span>
                     </h1>
 
-                    <form className="flex flex-col gap-4">
+                    <form onSubmit={handleSignIn} className="flex flex-col gap-4">
 
 
                         {/* Email  */}
@@ -58,7 +86,7 @@ const SignIn = () => {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-12 top-61 -translate-y-1/2 text-gray-400 hover:text-white transition cursor-pointer">
+                            className="absolute right-12 top-45 -translate-y-1/2 text-gray-400 hover:text-white transition cursor-pointer">
                             {showPassword ? <PiEyeClosedBold /> : <PiEyeBold />}
                         </button>
 
@@ -67,9 +95,9 @@ const SignIn = () => {
                             type="submit"
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.95 }}
-                            className="mt-4 mx-auto px-34 py-3 bg-blue-500 hover:bg-blue-600 rounded-xl font-medium 
-              flex justify-center items-center cursor-pointer">
-                            {loading ? <ClipLoader size={20} color='white' /> : "Register Now"}
+                            className="mt-4 mx-auto px-42 py-3 bg-blue-500 hover:bg-blue-600 rounded-xl font-medium 
+                            flex justify-center items-center cursor-pointer">
+                            {loading ? <ClipLoader size={20} color='white' /> : "Login"}
                         </motion.button>
 
                         <div className="flex items-center my-3">
@@ -82,15 +110,15 @@ const SignIn = () => {
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.95 }}
                             className="flex justify-center items-center gsp-3 py-3 bg-white/10 hover:bg-white/20
-              border border-white/30 rounded-xl transition cursor-pointer">
+                            border border-white/30 rounded-xl transition cursor-pointer">
                             <FcGoogle className="mr-2 text-2xl" />
-                            <span className="font-medium">Continue with Google</span>
+                            <span className="font-medium">Login with Google</span>
                         </motion.button>
 
                         <p className="text-center texxt-sm mt-4 text-gray-400 cursor-pointer">
                             Create New Account{" "}
                             <span
-                                onClick={() => router.push("/login")}
+                                onClick={() => router.push("/register")}
                                 className="text-blue-400 hover:underline hover:text-blue-300 transition">
                                 Sign Up
                             </span>
