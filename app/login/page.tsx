@@ -15,7 +15,7 @@ const SignIn = () => {
     const [showPassword, setShowPassword] = useState(false)
     const router = useRouter()
     const [loading, setLoading] = useState(false)
-    const session  = useSession() // not needed on login page currently
+    const session = useSession() // not needed on login page currently
     console.log(session)
 
 
@@ -28,7 +28,7 @@ const SignIn = () => {
             const result = await signIn("credentials", {
                 email,
                 password,
-                redirect:false
+                redirect: false
 
             })
             alert("SignIn Successfully")
@@ -107,6 +107,7 @@ const SignIn = () => {
                         </div>
 
                         <motion.button
+                            onClick={() => signIn("google", { callbackUrl: "/" })} 
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.95 }}
                             className="flex justify-center items-center gsp-3 py-3 bg-white/10 hover:bg-white/20
