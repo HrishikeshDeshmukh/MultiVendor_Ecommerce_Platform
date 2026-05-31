@@ -1,131 +1,304 @@
-"use client"
+"use client";
+
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence, motion } from "motion/react";
 import { FaRegUser } from "react-icons/fa";
 import { GrUserAdmin, GrNext } from "react-icons/gr";
 import { IoStorefrontSharp } from "react-icons/io5";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+
+const ROLES = [
+  {
+    label: "User",
+    value: "user",
+    icon: <FaRegUser size={30} />,
+  },
+  {
+    label: "Vendor",
+    value: "vendor",
+    icon: <IoStorefrontSharp size={30} />,
+  },
+  {
+    label: "Admin",
+    value: "admin",
+    icon: <GrUserAdmin size={30} />,
+  },
+];
 
 function EditRoleandPhone() {
+  const router = useRouter();
 
-  const [role, setRole] = useState("")
-  const [phone, setPhone] = useState("")
-  const roles = [
-    { label: "User", icon: <FaRegUser size={30} />, value: "user" },
-    { label: "Vendor", icon: <IoStorefrontSharp size={30} />, value: "vendor" },
-    { label: "Admin", icon: <GrUserAdmin size={30} />, value: "admin" }
-  ]
+  const [role, setRole] = useState("");
+  const [phone, setPhone] = useState("");
 
   const [adminExist, setAdminExist] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const checkAdmin = async () => {
       try {
-        const res = await axios.get("/api/admin/check-admin")
-        setAdminExist(res.data.exists)
+        const res = await axios.get("/api/admin/check-admin");
+
+        if (res.data?.exists) {
+          setAdminExist(true);
+        }
+      } catch (error) {
+        console.error("Admin check failed:", error);
+      } finally {
+        setLoading(false);
       }
-      catch (error) {
-        setAdminExist(false)
-        console.log(error)
-      }
+    };
+
+    checkAdmin();
+  }, []);
+
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
+    if (phone.length !== 10) {
+      alert("Please enter a valid 10-digit mobile number.");
+      return;
     }
-    checkAdmin()
-  }, [])
+
+    if (!role) {
+      alert("Please select a role.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      const res = await axios.post(
+        "/api/user/update-role-phone",
+        {
+          phone,
+          role,
+        }
+      );
+
+      console.log(res.data);
+
+      alert("Profile updated successfully!");
+
+      // Example redirect
+      router.push("/");
+    } catch (error) {
+      console.error(error);
+
+      if (axios.isAxiosError(error)) {
+        alert(
+          error.response?.data?.message ||
+            "Something went wrong."
+        );
+      } else {
+        alert("Something went wrong.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <p className="text-lg animate-pulse">
+          Loading...
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className='min-h-screen flex items-center justify-center 
-      bg-gradient-to-br from-slate-900 via-black to-gray-900 
-      text-white p-6'>
+    <div
+      className="
+      min-h-screen
+      flex
+      items-center
+      justify-center
+      bg-gradient-to-br
+      from-slate-900
+      via-black
+      to-gray-900
+      text-white
+      p-6
+    "
+    >
       <AnimatePresence>
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -40 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-lg text-center bg-white/10 
-                    backdrop-blur-md rounded-2xl shadow-2xl p-10 
-                    border border-white/20"
+          className="
+            w-full
+            max-w-lg
+            bg-white/10
+            backdrop-blur-md
+            rounded-3xl
+            border
+            border-white/20
+            shadow-2xl
+            p-8
+            text-center
+          "
         >
-
-          <h1 className="text-4xl font-bold mb-4">
-            Choose Your <span className="text-yellow-300">Role</span>
+          <h1 className="text-4xl font-bold mb-3">
+            Choose Your{" "}
+            <span className="text-yellow-300">
+              Role
+            </span>
           </h1>
 
-          <p className="text-blue-300 mb-6">
-            Select your role and Enter your mobile number to continue.
+          <p className="text-blue-300 mb-8">
+            Select your role and enter your mobile
+            number to continue.
           </p>
 
-          <form action="" className="flex flex-col gap-8">
-
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-8"
+          >
             <input
-              type="text"
-              placeholder="Enter Your Mobile Number"
+              type="tel"
+              placeholder="Enter Mobile Number"
+              value={phone}
               maxLength={10}
               required
-              className="bg-white/10 border border-white/30 rounded-lg p-4
-              text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={(e) => setPhone(e.target.value)}
-              value={phone}
+              onChange={(e) =>
+                setPhone(
+                  e.target.value
+                    .replace(/\D/g, "")
+                    .slice(0, 10)
+                )
+              }
+              className="
+                w-full
+                p-4
+                rounded-xl
+                bg-white/10
+                border
+                border-white/20
+                text-white
+                placeholder:text-gray-400
+                focus:outline-none
+                focus:ring-2
+                focus:ring-blue-500
+              "
             />
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-4">
+              {ROLES.map((item) => {
+                const isAdminBlocked =
+                  item.value === "admin" &&
+                  adminExist;
 
-              {roles.map((rol) => {
-                const isAdminBlocked = rol.value == "admin" && adminExist
-                return(
-                <motion.div
-                  key={rol.value}
-                  onClick={()=>{
-                    if(isAdminBlocked){
-                      alert("Admin already Exists. You cannot select Admin role.")
-                      return;
+                return (
+                  <motion.button
+                    key={item.value}
+                    type="button"
+                    whileHover={
+                      !isAdminBlocked
+                        ? { scale: 1.03 }
+                        : {}
                     }
-                    setRole(rol.value)
-                  }}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`p-4 bg-white/5 hover:bg-white/20 
-                          cursor-pointer rounded-xl border border-white/30 
-                          shadow-lg flex flex-col items-center gap-3 transition
-                          ${role === rol.value ? "border-blue-500 bg-blue-500/40"
-                            : "border-white/20 bg-white/10 hover:bg-white/20"
-                          }
-                          ${isAdminBlocked && "opacity-40 cursor-not-allowed"}`}
-                >
+                    whileTap={
+                      !isAdminBlocked
+                        ? { scale: 0.95 }
+                        : {}
+                    }
+                    onClick={() => {
+                      if (isAdminBlocked) {
+                        alert(
+                          "Admin already exists."
+                        );
+                        return;
+                      }
 
-                  <div className="text-3xl text-yellow-300">
-                    {rol.icon}
-                  </div>
+                      setRole(item.value);
+                    }}
+                    className={`
+                      p-4
+                      rounded-xl
+                      border
+                      transition-all
+                      duration-300
+                      flex
+                      flex-col
+                      items-center
+                      gap-3
+                      shadow-lg
 
-                  <p className="font-medium">
-                    {rol.label}
-                  </p>
+                      ${
+                        role === item.value
+                          ? "bg-white/30 border-blue-500"
+                          : "bg-white/10 border-white/20"
+                      }
 
-                </motion.div>
-                )
+                      ${
+                        isAdminBlocked
+                          ? "opacity-40 cursor-not-allowed"
+                          : "cursor-pointer hover:bg-white/20"
+                      }
+                    `}
+                  >
+                    <div className="text-yellow-300">
+                      {item.icon}
+                    </div>
 
-})}
-
+                    <span className="font-medium">
+                      {item.label}
+                    </span>
+                  </motion.button>
+                );
+              })}
             </div>
 
+            <motion.button
+              type="submit"
+              disabled={submitting}
+              whileHover={
+                !submitting
+                  ? { scale: 1.03 }
+                  : {}
+              }
+              whileTap={
+                !submitting
+                  ? { scale: 0.95 }
+                  : {}
+              }
+              className="
+                mx-auto
+                px-8
+                py-3
+                rounded-xl
+                bg-blue-500
+                hover:bg-blue-600
+                font-medium
+                flex
+                items-center
+                justify-center
+                disabled:opacity-50
+                disabled:cursor-not-allowed
+              "
+            >
+              {submitting ? (
+                "Saving..."
+              ) : (
+                <>
+                  Next
+                  <GrNext className="ml-2" />
+                </>
+              )}
+            </motion.button>
           </form>
-
-
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.95 }}
-            className="mt-4 mx-auto px-8 py-3 bg-blue-500 hover:bg-blue-600 rounded-xl font-medium 
-                      flex justify-center items-center cursor-pointer">
-            Next <GrNext className="ml-2" />
-          </motion.button>
-
         </motion.div>
-
-      </AnimatePresence >
+      </AnimatePresence>
     </div>
-
-
-  )
+  );
 }
 
-export default EditRoleandPhone
+export default EditRoleandPhone;
