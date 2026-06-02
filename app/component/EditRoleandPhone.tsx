@@ -73,7 +73,7 @@ function EditRoleandPhone() {
       setSubmitting(true);
 
       const res = await axios.post(
-        "/api/user/update-role-phone",
+        "/api/user/edit-role-phone",
         {
           phone,
           role,
@@ -85,7 +85,7 @@ function EditRoleandPhone() {
       alert("Profile updated successfully!");
 
       // Example redirect
-      router.push("/");
+      router.push("/home");
     } catch (error) {
       console.error(error);
 
