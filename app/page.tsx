@@ -3,21 +3,23 @@ import connectDb from "@/lib/connectDB"
 import User from "./model/user.model"
 import { redirect } from "next/navigation"
 import EditRoleandPhone from "./component/EditRoleandPhone"
+import Navbar from "./component/Navbar"
 
-const Home = async () => {
+async function Home(){
   await connectDb()
   const session = await auth()
   const user = await User.findById(session?.user?.id)
   if(!user){
     redirect("/login")
   }
-  const inComplete = !user.role || !!user.phone || !user.phone && user.role == "user"
+  const inComplete = !user.phone
   if(inComplete){
     return <EditRoleandPhone />
   }
   return (
-    <div>
-      
+    <div className='flex min-h-screen items-center justify-center bg-gradient-to-br
+    from-gray-900 via-black to-gray-900 font-sans flex-col'>
+      <Navbar  user={user} />
     </div>
   )
 }

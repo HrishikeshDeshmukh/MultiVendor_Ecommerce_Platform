@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
     try {
-        await connectDb();
+         await connectDb();
         const { phone, role } = await req.json()
         const session = await auth()
         const user = await User.findOneAndUpdate(

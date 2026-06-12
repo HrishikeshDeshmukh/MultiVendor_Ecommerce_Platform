@@ -84,8 +84,7 @@ function EditRoleandPhone() {
 
       alert("Profile updated successfully!");
 
-      // Example redirect
-      router.push("/home");
+      router.refresh();
     } catch (error) {
       console.error(error);
 
