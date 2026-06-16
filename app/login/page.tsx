@@ -15,6 +15,7 @@ const SignIn = () => {
     const [showPassword, setShowPassword] = useState(false)
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState("")
     const session = useSession() // not needed on login page currently
     console.log(session)
 
@@ -22,24 +23,46 @@ const SignIn = () => {
     console.log()
 
     const handleSignIn = async (e: React.FormEvent) => {
-        setLoading(true)
         e.preventDefault()
+        setError("")
+
+        if (!email || !password) {
+            setError("Please fill in all fields")
+            return
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email)) {
+            setError("Please enter a valid email address")
+            return
+        }
+
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters")
+            return
+        }
+
+        setLoading(true)
         try {
-            const result = await signIn("credentials", {
+            const result: any = await signIn("credentials", {
                 email,
                 password,
                 redirect: false
-
             })
+
+            if (result && result.error) {
+                setError(result.error)
+                return
+            }
+
             alert("SignIn Successfully")
             router.push("/")
-            setLoading(false)
 
         } catch (error) {
-
             console.log(error)
+            setError("Login failed. Please try again.")
+        } finally {
             setLoading(false)
-            alert(error)
         }
     }
 
@@ -60,6 +83,7 @@ const SignIn = () => {
                     </h1>
 
                     <form onSubmit={handleSignIn} className="flex flex-col gap-4">
+                        {error && <p className="text-red-400 text-center">{error}</p>}
 
 
                         {/* Email  */}

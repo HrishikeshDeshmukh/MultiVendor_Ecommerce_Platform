@@ -5,10 +5,12 @@ import { redirect } from "next/navigation"
 import EditRoleandPhone from "./component/EditRoleandPhone"
 import Navbar from "./component/Navbar"
 
+
 async function Home(){
   await connectDb()
   const session = await auth()
-  const user = await User.findById(session?.user?.id)
+const userDoc = await User.findById(session?.user?.id).lean();
+const user = JSON.parse(JSON.stringify(userDoc));
   if(!user){
     redirect("/login")
   }
