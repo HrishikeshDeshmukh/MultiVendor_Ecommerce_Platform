@@ -4,12 +4,14 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { IconType } from "react-icons";
+import { signOut } from "next-auth/react";
 import {
   AiOutlineSearch,
   AiOutlineUser,
   AiOutlinePhone,
+  AiOutlineShoppingCart
 } from "react-icons/ai";
-import {useState} from "react"
+import { useState, useEffect, useRef } from "react";
 
 import logo from "@/public/logo.png";
 
@@ -24,11 +26,31 @@ interface NavbarProps {
   user: NavbarUser;
 }
 
+
 export default function Navbar({ user }: NavbarProps) {
   const router = useRouter();
   const [openMenu, setOpenMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const navigate = (path: string) => router.push(path);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
+        setOpenMenu(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
 
   return (
     <nav
@@ -94,32 +116,63 @@ export default function Navbar({ user }: NavbarProps) {
             onClick={() => navigate("/support")}
           />
 
-          {user.image ? (
-            <Image
-              src={user.image}
-              alt={user.name || "User"}
-              width={40}
-              height={40}
-              className="
-                cursor-pointer rounded-full
-                border border-gray-700
-                object-cover
-              "
-              onClick={() => setOpenMenu(!openMenu)}
-            />
-          ) : (
-            <IconBtn
-              Icon={AiOutlineUser}
-              onClick={() => navigate("/profile")}
-            />
-          )}
+          <div ref={menuRef} className="relative">
+            {user.image ? (
+              <Image
+                src={user.image}
+                alt={user.name || "User"}
+                width={40}
+                height={40}
+                className="cursor-pointer rounded-full border border-gray-700 object-cover"
+                onClick={() => setOpenMenu((prev) => !prev)}
+              />
+            ) : (
+              <IconBtn
+                Icon={AiOutlineUser}
+                onClick={() => setOpenMenu((prev) => !prev)}
+              />
+            )}
 
-          <AnimatePresence>
-           {openMenu && <motion.div className ="absolute right-0 mt-3 w-48
-           backdrop-blur-lg rounded-xl shadow-lg border bg-[#6a69693c]">
+            <AnimatePresence>
+              {openMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
+                  className="absolute right-0 top-12 w-48 rounded-xl border bg-[#6a69693c] backdrop-blur-lg shadow-lg"
+                >
+                  <DropDownBtn
+                    Icon={AiOutlineUser}
+                    label="Profile"
+                    onClick={() => {
+                      navigate("/profile");
+                      setOpenMenu(false);
+                    }}
+                  />
 
-            </motion.div>}
-          </AnimatePresence>
+                  <DropDownBtn
+                    Icon={AiOutlineUser}
+                    label="Sign In"
+                    onClick={() => {
+                      navigate("/login");
+                      setOpenMenu(false);
+                    }}
+                  />
+
+                  <DropDownBtn
+                    Icon={AiOutlineUser}
+                    label="Sign Out"
+                    onClick={() => {
+                      signOut()
+                      setOpenMenu(false);
+                    }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+            {user?.role=="user" && (<CartBtn router={router} count={5} />)}
+          </div>
         </div>
       </div>
     </nav>
@@ -136,7 +189,7 @@ function NavItem({ label, onClick }: NavItemProps) {
     <motion.button
       whileHover={{ scale: 1.05 }}
       onClick={onClick}
-      className="transition-colors hover:text-gray-300"
+      className="transition-colors hover:text-gray-300 cursor-pointer"
     >
       {label}
     </motion.button>
@@ -153,9 +206,43 @@ function IconBtn({ Icon, onClick }: IconBtnProps) {
     <motion.button
       whileHover={{ scale: 1.1 }}
       onClick={onClick}
-      className="transition-transform"
+      className="transition-transform cursor-pointer"
     >
       <Icon size={24} />
+    </motion.button>
+  );
+}
+
+interface DropDownBtnProps {
+  Icon: IconType;
+  label: string;
+  onClick: () => void;
+}
+
+const DropDownBtn = ({ Icon, label, onClick }: DropDownBtnProps) => (
+
+  <button className="flex items-center gap-3 w-full px-4 py-2 hover:bg-white/10 text-left cursor-pointer"
+    onClick={() => {
+      onClick();
+      close()
+    }}>
+    <Icon size={18} />{label}
+  </button>
+)
+
+const CartBtn = ({ router, count }: { router: ReturnType<typeof useRouter>; count: number }) => {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      onClick={() => router.push("/cart")}
+      className="transition-transform cursor-pointer relative"
+    >
+      <AiOutlineShoppingCart size={24} />
+      {count > 0 && (
+        <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full px-1">
+          {count}
+        </span>
+      )}
     </motion.button>
   );
 }
