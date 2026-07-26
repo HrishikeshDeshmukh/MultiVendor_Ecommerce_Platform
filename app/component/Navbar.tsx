@@ -8,12 +8,20 @@ import { signOut } from "next-auth/react";
 import {
   AiOutlineSearch,
   AiOutlineUser,
+  AiOutlineShop,
   AiOutlinePhone,
-  AiOutlineShoppingCart
+  AiOutlineShoppingCart,
+  AiOutlineMenu,
+  AiOutlineClose,
+  AiOutlineHome,
+  AiOutlineAppstore,
+  AiOutlineLogout
 } from "react-icons/ai";
 import { useState, useEffect, useRef } from "react";
 
 import logo from "@/public/logo.png";
+import { button, nav } from "motion/react-m";
+import { GoListUnordered } from "react-icons/go";
 
 interface NavbarUser {
   name?: string;
@@ -30,6 +38,7 @@ interface NavbarProps {
 export default function Navbar({ user }: NavbarProps) {
   const router = useRouter();
   const [openMenu, setOpenMenu] = useState(false)
+  const [openMobileMenu, setOpenMobileMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null);
 
   const navigate = (path: string) => router.push(path);
@@ -70,8 +79,8 @@ export default function Navbar({ user }: NavbarProps) {
           <Image
             src={logo}
             alt="Vendora Logo"
-            width={40}
-            height={40}
+            width={32}
+            height={32}
             priority
           />
 
@@ -121,8 +130,8 @@ export default function Navbar({ user }: NavbarProps) {
               <Image
                 src={user.image}
                 alt={user.name || "User"}
-                width={40}
-                height={40}
+                width={32}
+                height={32}
                 className="cursor-pointer rounded-full border border-gray-700 object-cover"
                 onClick={() => setOpenMenu((prev) => !prev)}
               />
@@ -171,11 +180,119 @@ export default function Navbar({ user }: NavbarProps) {
                 </motion.div>
               )}
             </AnimatePresence>
-            {user?.role=="user" && (<CartBtn router={router} count={5} />)}
+            {user?.role == "user" && (<CartBtn router={router} count={5} />)}
           </div>
         </div>
+        {/* mobile icon */}
+        <div className="md:hidden flex items-center gap-4">
+          <>{user?.role == "vendor" || user?.role == "admin" ? (
+            <IconBtn
+              Icon={AiOutlinePhone}
+              onClick={() => navigate("/support")}
+
+            />
+          ) : null}
+            {user?.image ? (
+              <Image
+                src={user.image}
+                alt={user.name || "User"}
+                width={32}
+                height={32}
+                className="cursor-pointer rounded-full border border-gray-700 object-cover"
+                onClick={() => navigate("/profile")}
+              />
+            ) : user?.role == "user" ? (
+              <IconBtn
+                Icon={AiOutlineUser}
+                onClick={() => setOpenMenu((prev) => !prev)}
+              />
+            ) : null}
+            <AnimatePresence>
+              {openMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
+                  className="absolute right-0 top-12 w-48 rounded-xl border bg-[#6a69693c] backdrop-blur-lg shadow-lg"
+                >
+                  <DropDownBtn
+                    Icon={AiOutlineUser}
+                    label="Profile"
+                    onClick={() => {
+                      navigate("/profile");
+                      setOpenMenu(false);
+                    }}
+                  />
+
+                  <DropDownBtn
+                    Icon={AiOutlineUser}
+                    label="Sign In"
+                    onClick={() => {
+                      navigate("/login");
+                      setOpenMenu(false);
+                    }}
+                  />
+
+                  <DropDownBtn
+                    Icon={AiOutlineUser}
+                    label="Sign Out"
+                    onClick={() => {
+                      signOut()
+                      setOpenMenu(false);
+                    }}
+                  />
+                </motion.div>
+
+              )}
+            </AnimatePresence>
+          </>
+
+          <>
+            <IconBtn
+              Icon={AiOutlineSearch}
+              onClick={() => navigate("/category")}
+            />
+            <IconBtn
+              Icon={AiOutlinePhone}
+              onClick={() => navigate("/support")}
+            />
+            <CartBtn router={router} count={5} />
+            <IconBtn
+              Icon={AiOutlineMenu}
+              onClick={() => setOpenMobileMenu((prev) => !prev)}
+            />
+
+            <AnimatePresence>
+              {openMobileMenu && (
+                <motion.div
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{ type: "spring", stiffness: 300, damping: 40 }}
+                  className="fixed right-0 top-0 h-screen w-[65%] rounded-xl border bg-[#6a69693c] backdrop-blur-lg shadow-lg"
+                >
+                  <div className="flex justify-between items-center mb-6 m-3">
+                    <h1 className="text-xl font-semibold">Menu</h1>
+                    <AiOutlineClose size={28} className="cursor-pointer"
+                      onClick={() => setOpenMobileMenu(false)} />
+                  </div>
+                  <div className="flex flex-col gap-4 text-lg">
+                    <SidebarBtn Icon={AiOutlineHome} label="Home" path="/" router={router} setMobileMenu={setOpenMobileMenu} />
+                    <SidebarBtn Icon={AiOutlineUser} label="Profile" path="/profile" router={router} setMobileMenu={setOpenMobileMenu} />
+                    <SidebarBtn Icon={AiOutlineAppstore} label="Categories" path="/category" router={router} setMobileMenu={setOpenMobileMenu} />
+                    <SidebarBtn Icon={AiOutlineShop} label="Shop" path="/shop" router={router} setMobileMenu={setOpenMobileMenu} />
+                    <SidebarBtn Icon={GoListUnordered} label="Orders" path="/orders" router={router} setMobileMenu={setOpenMobileMenu} />
+                    <SidebarBtnforSignout Icon={AiOutlineLogout} label="Sign Out" onClick={signOut} />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+
+        </div>
       </div>
-    </nav>
+    </nav >
   );
 }
 
@@ -235,7 +352,7 @@ const CartBtn = ({ router, count }: { router: ReturnType<typeof useRouter>; coun
     <motion.button
       whileHover={{ scale: 1.1 }}
       onClick={() => router.push("/cart")}
-      className="transition-transform cursor-pointer relative"
+      className="transition-transform cursor-pointer relative pl-5"
     >
       <AiOutlineShoppingCart size={24} />
       {count > 0 && (
@@ -245,4 +362,22 @@ const CartBtn = ({ router, count }: { router: ReturnType<typeof useRouter>; coun
       )}
     </motion.button>
   );
+
 }
+
+const SidebarBtn = ({ Icon, label, path, router,setMobileMenu }: any) => (
+  <motion.button className="flex items-center gap-3 w-full px-4 py-2 hover:bg-white/10 text-left cursor-pointer"
+    onClick={() => {
+      router.push(path)
+      setMobileMenu(false)
+    }}>
+      <Icon size={18} />{label}
+  </motion.button>
+)
+
+const SidebarBtnforSignout = ({ Icon, label, onClick }: any) => (
+  <motion.button className="flex items-center gap-3 w-full px-4 py-2 hover:bg-white/10 text-left cursor-pointer"
+    onClick={onClick}> 
+    <Icon size={18} />{label}
+  </motion.button>
+)    

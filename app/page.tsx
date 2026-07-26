@@ -22,6 +22,10 @@ const user = JSON.parse(JSON.stringify(userDoc));
     <div className='flex min-h-screen items-center justify-center bg-gradient-to-br
     from-gray-900 via-black to-gray-900 font-sans flex-col'>
       <Navbar  user={user} />
+      {user?.role =="user" ? <UserDashboard /> : 
+       user?.role == "vendor" ? <VendorDashboard /> : 
+       user?.role == "admin" ? <AdminDashboard /> : 
+       null   }
     </div>
   )
 }
