@@ -1,2 +1,28 @@
 @import "tailwindcss";
 
+::-webkit-scrollbar {
+    display: none;
+}
+
+*{
+    scrollbar-width: none;
+}
+
+@keyframes scrollLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  display: flex;
+  width: max-content;
+  animation: scrollLeft 25s linear infinite;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
