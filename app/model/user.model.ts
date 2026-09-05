@@ -75,7 +75,7 @@ const userSchema = new mongoose.Schema<IUser>({
         type:String
     },
     gstNumber:{
-        type:Number
+        type:String
     },
     isApproved:{
         type:Boolean,

@@ -84,7 +84,7 @@ function Slider() {
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="absolute inset-0 bg-blue-500 bg-opacity-50 flex items-center justify-center"
+                                className="absolute inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center"
                             >
                                 <motion.div
                                     initial={{ scale: 0 }}

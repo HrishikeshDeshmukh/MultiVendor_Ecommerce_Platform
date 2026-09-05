@@ -31,7 +31,7 @@ const CategorySlider = () => {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentSlide((prevSlide) => (prevSlide + 1) % (categories.length - 4));
+            setCurrentSlide((prevSlide) => (prevSlide + 1) % (categories.length - 3));
         }, 5000);
 
         return () => clearInterval(interval);
@@ -48,9 +48,9 @@ const CategorySlider = () => {
             </h2>
             <div className="w-full overflow-hidden py-4">
                 <div
-                    className="flex gap-6 transition-transform duration-700 ease-in-out"
+                    className="flex gap-6 transition-transform duration-700 ease-in-out items-center"
                     style={{
-                        transform: `translateX(calc(-${currentSlide} * (20rem + 1.5rem)))`,
+                        transform: `translateX(calc(-${currentSlide} * (18rem + 1.5rem)))`,
                     }}
                 >
                     {categories.map((category, index) => (

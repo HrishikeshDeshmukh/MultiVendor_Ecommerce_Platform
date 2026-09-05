@@ -1,5 +1,4 @@
 
-
 import { auth } from "@/auth"
 import connectDb from "@/lib/connectDB"
 import User from "./model/user.model"
@@ -9,9 +8,10 @@ import Navbar from "./component/Navbar"
 import UserDashboard from "./component/User/UserDashboard"
 import VendorDashboard from "./component/Vendor/VendorDashboard"
 import AdminDashboard from "./component/Admin/AdminDashboard"
+import Footer from "./component/Footer"
+import EditVendorDetails from "./component/Vendor/EditVendorDetails"
 
-
-async function Home() {
+export default async function Home() {
   await connectDb()
   const session = await auth()
   const userDoc = await User.findById(session?.user?.id).lean();
@@ -19,10 +19,16 @@ async function Home() {
   if (!user) {
     redirect("/login")
   }
-  const inComplete = !user.phone
+  const inComplete = !user.phone || !user.phone
   if (inComplete) {
     return <EditRoleandPhone />
   }
+
+  if(user?.role == "vendor" ){
+    const isCompleteDetails = !user?.shopName || !user?.shopAddress || !user?.gstNumber
+    if(isCompleteDetails){
+      return <EditVendorDetails />
+    } }
   return (
     <div className='flex min-h-screen items-center justify-center bg-gradient-to-br
     from-gray-900 via-black to-gray-900 font-sans flex-col'>
@@ -31,8 +37,8 @@ async function Home() {
         user?.role == "vendor" ? <VendorDashboard /> :
           user?.role == "admin" ? <AdminDashboard /> :
             null}
+      <Footer user={user} />
     </div>
   )
 }
 
-export default Home
